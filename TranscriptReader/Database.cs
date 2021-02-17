@@ -41,17 +41,20 @@ namespace TranscriptReader
 
         }
 
-        public static void AddClass(SQLiteConnection conn, string code, string name, string[] credits)
+        public static void AddClass(SQLiteConnection conn, string code, string description, string[] credits)
         {
             SQLiteCommand sQLiteCommand;
             sQLiteCommand = conn.CreateCommand();
-            string values = "('" + code + "', '" + name + "', '";
+            string values = "('" + code + "', '" + description + "', '";
             foreach (string credit in credits) {
-                values += credit + ",";
+                if (credit != "")
+                {
+                    values += credit + ",";
+                }
             }
             values = values.Remove(values.Length - 1, 1);
             values += "');";
-            sQLiteCommand.CommandText = "INSERT INTO Classes (District_Code, Name, Credit) VALUES " + values;
+            sQLiteCommand.CommandText = "INSERT OR REPLACE INTO Classes (District_Code, Name, Credit) VALUES " + values;
             sQLiteCommand.ExecuteNonQuery();
         }
 
@@ -72,12 +75,41 @@ namespace TranscriptReader
                 arr[1] = sQLiteDataReader.GetString(1);
                 for (int i = 0; i<credits.Length; i++)
                 {
-                    arr[1 + i] = credits[i];
+                    arr[2 + i] = credits[i];
                 }
                 data.Add(arr);
             }
 
             return data;
+        }
+
+        public static string CheckClass(SQLiteConnection conn, string code)
+        {
+            SQLiteDataReader sQLiteDataReader;
+            SQLiteCommand sQLiteCommand;
+            sQLiteCommand = conn.CreateCommand();
+            sQLiteCommand.CommandText = "SELECT Credit FROM Classes WHERE District_Code = '" + code + "'";
+
+            sQLiteDataReader = sQLiteCommand.ExecuteReader();
+            if (sQLiteDataReader.Read())
+            {
+                return sQLiteDataReader.GetString(0);
+            }
+            else
+            {
+                return "";
+            }
+
+            
+     
+        }
+
+        public static void RemoveClass(SQLiteConnection conn, string districtCode)
+        {
+            SQLiteCommand sQLiteCommand;
+            sQLiteCommand = conn.CreateCommand();
+            sQLiteCommand.CommandText = "DELETE FROM Classes WHERE District_Code = '" + districtCode + "'";
+            sQLiteCommand.ExecuteNonQuery();
         }
     }
 }
