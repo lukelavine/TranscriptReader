@@ -33,11 +33,14 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.mainToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadTranscriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exportToBoxSheetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.databaseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addEditClassToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewDatabaseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.removeClassToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.exportButton = new System.Windows.Forms.Button();
             this.label18 = new System.Windows.Forms.Label();
             this.label17 = new System.Windows.Forms.Label();
             this.label16 = new System.Windows.Forms.Label();
@@ -123,6 +126,8 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.college = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -143,14 +148,15 @@
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Location = new System.Drawing.Point(0, 0);
             this.dataGridView1.Name = "dataGridView1";
-            this.dataGridView1.Size = new System.Drawing.Size(516, 658);
+            this.dataGridView1.Size = new System.Drawing.Size(516, 689);
             this.dataGridView1.TabIndex = 5;
             // 
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mainToolStripMenuItem,
-            this.databaseToolStripMenuItem});
+            this.databaseToolStripMenuItem,
+            this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(1053, 24);
@@ -160,7 +166,8 @@
             // mainToolStripMenuItem
             // 
             this.mainToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.loadTranscriptToolStripMenuItem});
+            this.loadTranscriptToolStripMenuItem,
+            this.exportToBoxSheetToolStripMenuItem});
             this.mainToolStripMenuItem.Name = "mainToolStripMenuItem";
             this.mainToolStripMenuItem.Size = new System.Drawing.Size(70, 20);
             this.mainToolStripMenuItem.Text = "Transcript";
@@ -168,9 +175,16 @@
             // loadTranscriptToolStripMenuItem
             // 
             this.loadTranscriptToolStripMenuItem.Name = "loadTranscriptToolStripMenuItem";
-            this.loadTranscriptToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.loadTranscriptToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
             this.loadTranscriptToolStripMenuItem.Text = "Load Transcript";
             this.loadTranscriptToolStripMenuItem.Click += new System.EventHandler(this.loadTranscriptToolStripMenuItem_Click);
+            // 
+            // exportToBoxSheetToolStripMenuItem
+            // 
+            this.exportToBoxSheetToolStripMenuItem.Name = "exportToBoxSheetToolStripMenuItem";
+            this.exportToBoxSheetToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
+            this.exportToBoxSheetToolStripMenuItem.Text = "Export to Box Sheet";
+            this.exportToBoxSheetToolStripMenuItem.Click += new System.EventHandler(this.exportToBoxSheetToolStripMenuItem_Click);
             // 
             // databaseToolStripMenuItem
             // 
@@ -203,6 +217,13 @@
             this.removeClassToolStripMenuItem.Text = "Remove Class";
             this.removeClassToolStripMenuItem.Click += new System.EventHandler(this.removeClassToolStripMenuItem_Click);
             // 
+            // helpToolStripMenuItem
+            // 
+            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+            this.helpToolStripMenuItem.Text = "Help";
+            this.helpToolStripMenuItem.Click += new System.EventHandler(this.helpToolStripMenuItem_Click);
+            // 
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -215,6 +236,7 @@
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.exportButton);
             this.splitContainer1.Panel2.Controls.Add(this.label18);
             this.splitContainer1.Panel2.Controls.Add(this.label17);
             this.splitContainer1.Panel2.Controls.Add(this.label16);
@@ -299,9 +321,19 @@
             this.splitContainer1.Panel2.Controls.Add(this.label3);
             this.splitContainer1.Panel2.Controls.Add(this.label2);
             this.splitContainer1.Panel2.Controls.Add(this.label1);
-            this.splitContainer1.Size = new System.Drawing.Size(1053, 658);
+            this.splitContainer1.Size = new System.Drawing.Size(1053, 689);
             this.splitContainer1.SplitterDistance = 519;
             this.splitContainer1.TabIndex = 7;
+            // 
+            // exportButton
+            // 
+            this.exportButton.Location = new System.Drawing.Point(396, 654);
+            this.exportButton.Name = "exportButton";
+            this.exportButton.Size = new System.Drawing.Size(121, 23);
+            this.exportButton.TabIndex = 84;
+            this.exportButton.Text = "Export to Boxsheet";
+            this.exportButton.UseVisualStyleBackColor = true;
+            this.exportButton.Click += new System.EventHandler(this.exportButton_Click);
             // 
             // label18
             // 
@@ -1003,11 +1035,23 @@
             // 
             this.college.Text = "College Requirements";
             // 
+            // openFileDialog1
+            // 
+            this.openFileDialog1.FileName = "openFileDialog1";
+            this.openFileDialog1.Filter = "PDF files|*.pdf|All files|*.*";
+            this.openFileDialog1.RestoreDirectory = true;
+            this.openFileDialog1.Title = "Select Transcript PDF";
+            // 
+            // saveFileDialog1
+            // 
+            this.saveFileDialog1.DefaultExt = "pdf";
+            this.saveFileDialog1.Filter = "PDF files|*.pdf";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1053, 682);
+            this.ClientSize = new System.Drawing.Size(1053, 713);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.menuStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -1123,6 +1167,11 @@
         private System.Windows.Forms.ComboBox electiveCB6;
         private System.Windows.Forms.ComboBox electiveCB7;
         private System.Windows.Forms.ComboBox electiveCB5;
+        private System.Windows.Forms.OpenFileDialog openFileDialog1;
+        private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem exportToBoxSheetToolStripMenuItem;
+        private System.Windows.Forms.SaveFileDialog saveFileDialog1;
+        private System.Windows.Forms.Button exportButton;
     }
 }
 

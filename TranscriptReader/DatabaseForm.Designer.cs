@@ -166,7 +166,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "DatabaseForm";
-            this.Text = "DatabaseForm";
+            this.Text = "Add or Edit Database Entry";
             this.ResumeLayout(false);
             this.PerformLayout();
 

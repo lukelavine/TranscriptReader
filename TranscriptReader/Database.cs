@@ -7,6 +7,7 @@ using System.Data.SQLite;
 
 namespace TranscriptReader
 {
+    //Should probably add some try catch loops here
     static class Database
     {
         public static SQLiteConnection CreateConnection()

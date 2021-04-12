@@ -11,10 +11,13 @@ namespace TranscriptReader
 {
     class Reader
     {
-        //Regex pattern to match a class on a transcript
-        //Original that grabbed Course Designation, was a little greedy and would sometimes grab a whole word:
+        //Original regex that grabbed Course Designation, was a little greedy and would sometimes grab a whole word:
         //\d{5} \w{6} .*? \d\.\d{3} \d\.\d{3}\s[A-Z]*
+
+        //Regex pattern to match a class on a transcript
         private readonly string class_pattern = @"\d{5} \w{6} .*? \d\.\d{3} \d\.\d{3}";
+
+        private readonly string wasth_pattern = @"WASHINGTON STATE HISTORY\w+";
 
         public string PdfText(PdfReader r)
         {
@@ -64,6 +67,18 @@ namespace TranscriptReader
                 classes.Add(c);
             }
             return classes;
+        }
+
+        public bool WASTH(string path)
+        {
+            using (PdfReader r = new PdfReader(path))
+            {
+                string text = PdfText(r);
+
+                Regex rgx = new Regex(wasth_pattern);
+
+                return (rgx.Match(text) != null);
+            }
         }
     }
 }

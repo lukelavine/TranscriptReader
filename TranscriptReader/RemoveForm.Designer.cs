@@ -84,7 +84,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimizeBox = false;
             this.Name = "RemoveForm";
-            this.Text = "RemoveForm";
+            this.Text = "Remove Database Entry";
             this.ResumeLayout(false);
             this.PerformLayout();
 

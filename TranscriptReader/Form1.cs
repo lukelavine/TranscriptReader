@@ -11,15 +11,17 @@ using System.Data.SQLite;
 
 namespace TranscriptReader
 {
+    //TODO: safer database connection
     public partial class Form1 : Form
     {
         SQLiteConnection conn;
 
         List<string> fields = new List<string>() { "English", "Math", "Science", "Social Studies", "CTE", "PE", "Health", "Art", "World Language", "Elective", "PP" };
 
-        Dictionary<string, List<ClassRecord>> base_reqdic;
         Dictionary<string, int> credit_reqdic;
         Dictionary<string, List<ComboBox>> cb_dic;
+        List<CheckBox> cte_cb;
+        List<CheckBox> gradreq_cbs;
 
         List<ClassRecord> unselected;
 
@@ -31,19 +33,18 @@ namespace TranscriptReader
         private void Form1_Load(object sender, EventArgs e)
         {
             conn = Database.CreateConnection();
-            InitializeReqDic();
             InitializeCreditReqDic();
             InitializeCBs();
         }
 
-        private void InitializeReqDic()
+        private Dictionary<string, List<ClassRecord>> InitializeReqDic()
         {
-            base_reqdic = new Dictionary<string, List<ClassRecord>>();
+            Dictionary<string, List<ClassRecord>> dic = new Dictionary<string, List<ClassRecord>>();
             foreach (string field in fields)
             {
-                base_reqdic.Add(field, new List<ClassRecord>());
+                dic.Add(field, new List<ClassRecord>());
             }
-
+            return dic;
         }
 
         private void InitializeCreditReqDic()
@@ -79,6 +80,19 @@ namespace TranscriptReader
                 { "Elective", new List<ComboBox>() { electiveCB1, electiveCB2, electiveCB3, electiveCB4, electiveCB5, electiveCB6, electiveCB7, electiveCB8, electiveCB9, electiveCB10 } },
                 { "PP", new List<ComboBox>() { ppCB1, ppCB2, ppCB3, ppCB4, ppCB5, ppCB6, ppCB7, ppCB8 } }
             };
+            cte_cb = new List<CheckBox> { CTECheckbox1, CTECheckbox2 };
+            gradreq_cbs = new List<CheckBox> { ELACheckbox, MathCheckbox, HSBPCheckbox };
+        }
+
+        private void ClearDics()
+        {
+            foreach (string key in cb_dic.Keys)
+            {
+                foreach (ComboBox cb in cb_dic[key])
+                {
+                    cb.Items.Clear();
+                }
+            }
         }
 
         public void AddTranscriptColumns()
@@ -130,85 +144,118 @@ namespace TranscriptReader
             }
         }
 
+        //TODO: select multicredit classes, handle 0.25 credit classes
         private void loadTranscriptToolStripMenuItem_Click(object sender, EventArgs e)
         {
             dataGridView1.Rows.Clear();
             AddTranscriptColumns();
             dataGridView1.Refresh();
+            ClearDics();
 
-            Reader r = new Reader();
-            List<ClassRecord> rs = r.Parse(@"D:\Projects\Transcript to Box Sheet\Transcript LuLa.pdf");
-            unselected = new List<ClassRecord>();
-
-            Dictionary<string, List<ClassRecord>> req_dic = new Dictionary<string, List<ClassRecord>>(base_reqdic);
-            foreach (ClassRecord record in rs)
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                List<string> row = record.ListOfData();
-                dataGridView1.Rows.Add(row.ToArray());
+                Reader r = new Reader();
+                List<ClassRecord> rs = r.Parse(openFileDialog1.FileName);
+                WASTHistoryCheckbox.Checked = r.WASTH(openFileDialog1.FileName);
 
-                string credits = Database.CheckClass(conn, record.DistrictCourseCode);
-
-                if (credits != "")
+                if (rs.Count > 0)
                 {
+                    unselected = new List<ClassRecord>();
+                    Dictionary<string, List<ClassRecord>> req_dic = InitializeReqDic();
 
-                    string[] c = credits.Split(',');
+                    foreach (ClassRecord record in rs)
+                    {
+                        List<string> row = record.ListOfData();
+                        dataGridView1.Rows.Add(row.ToArray());
 
-                    if (c.Length > 1)
-                    {
-                        record.MultiCredit = true;
-                    }
-                    foreach (string cred in c)
-                    {
-                        foreach(string field in fields)
+                        string credits = Database.CheckClass(conn, record.DistrictCourseCode);
+
+                        if (credits != "")
                         {
-                            if (cred.Contains(field))
+
+                            string[] c = credits.Split(',');
+
+                            if (c.Length > 1)
                             {
-                                req_dic[field].Add(record);
+                                record.MultiCredit = true;
+                                dataGridView1.Rows[dataGridView1.Rows.Count - 1].DefaultCellStyle.BackColor = Color.Yellow;
+                            }
+                            foreach (string cred in c)
+                            {
+                                foreach (string field in fields)
+                                {
+                                    if (cred.Contains(field))
+                                    {
+                                        req_dic[field].Add(record);
+                                    }
+                                }
+                            }
+                            req_dic["Elective"].Add(record);
+                            req_dic["PP"].Add(record);
+                        }
+                        else
+                        {
+                            dataGridView1.Rows[dataGridView1.Rows.Count - 1].DefaultCellStyle.BackColor = Color.Red;
+                        }
+                    }
+
+
+                    Dictionary<string, int> selected_count = new Dictionary<string, int>();
+
+                    foreach (string field in fields)
+                    {
+                        if (!field.Equals("CTE"))
+                        {
+                            req_dic[field].Sort();
+                            addCBClasses(field, req_dic);
+                            if (!field.Equals("Elective") && !field.Equals("PP"))
+                            {
+                                selected_count.Add(field, selectCBClasses(field, req_dic));
+                            }
+                            else
+                            {
+                                selected_count.Add(field, 0);
                             }
                         }
                     }
-                    req_dic["Elective"].Add(record);
-                    req_dic["PP"].Add(record);
-                }
-                else
-                {
-                    dataGridView1.Rows[dataGridView1.Rows.Count - 1].DefaultCellStyle.BackColor = Color.Yellow;
-                }
-            }
 
-            Dictionary<string, int> selected_count = new Dictionary<string, int>();
-
-            foreach (string field in fields)
-            {
-                if (!field.Equals("CTE"))
-                {
-                    req_dic[field].Sort();
-                    addCBClasses(field, req_dic);
-                    selected_count.Add(field, selectCBClasses(field, req_dic));
-                }
-            }
-
-            /*foreach (ClassRecord rec in unselected)
-            {
-                foreach (string field in fields)
-                {
-                    if (req_dic[field].Contains(rec))
+                    for (int i = 0; i < 2 && i < req_dic["CTE"].Count; i++)
                     {
-                        if (selected_count[field] == credit_reqdic[field])
-                        {
-                            
-                        }
+                        cte_cb[i].Checked = true;
                     }
-                } 
-            }*/
 
+                    foreach (ClassRecord rec in unselected)
+                    {
+                        if (!rec.MultiCredit && selected_count["Elective"] < 10)
+                        {
+                            cb_dic["Elective"][selected_count["Elective"]++].Text = rec.Description;
+                        }
+                        /*foreach (string field in fields)
+                        {
+                            if (req_dic[field].Contains(rec))
+                            {
+                                if (selected_count[field] == credit_reqdic[field])
+                                {
+
+                                }
+                            }
+                        }*/
+                    }
+                } else
+                {
+                    MessageBox.Show("Couldn't Read PDF File", "PDF Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
 
+        //TODO: sort by name before adding to comboboxes
+        //Default sorts by district code at the moment, have to sort by name somehow
         private void addCBClasses(string field, Dictionary<string, List<ClassRecord>> req_dic)
         {
             foreach (ComboBox cb in cb_dic[field])
             {
                 cb.Items.AddRange(req_dic[field].ToArray());
+                
             }
         }
 
@@ -218,13 +265,16 @@ namespace TranscriptReader
 
             foreach (ClassRecord record in req_dic[field])
             {
-                if (!record.MultiCredit && count2 < credit_reqdic[field] && !field.Equals("Elective") && !field.Equals("PP"))
+                if (!record.MultiCredit && count1 < credit_reqdic[field] && !field.Equals("Elective") && !field.Equals("PP"))
                 {
                     cb_dic[field][count1++].SelectedIndex = count2;
                 }
                 else
                 {
-                    unselected.Add(record);
+                    if (!unselected.Contains(record))
+                    {
+                        unselected.Add(record);
+                    }
                 }
                 count2++;
             }
@@ -243,5 +293,31 @@ namespace TranscriptReader
             popup.Dispose();
         }
 
+        private void helpToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            HelpForm popup = new HelpForm();
+            popup.ShowDialog(this);
+            popup.Dispose();
+        }
+
+        private void exportToBoxSheetToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Export();
+        }
+
+        private void exportButton_Click(object sender, EventArgs e)
+        {
+            Export();
+        }
+
+        private void Export()
+        {
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                Writer w = new Writer();
+                w.ExportToBoxSheet(saveFileDialog1.FileName, cb_dic, cte_cb, WASTHistoryCheckbox, gradreq_cbs);
+            }
+        }
     }
 }
+
